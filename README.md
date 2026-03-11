@@ -95,6 +95,6 @@ Typical workflow:
 - **Priyanshu Sharma** — Documentation & Research Coordinator
 - **Yash Kumar** — Frontend Developer & Dashboard Designer
 
-## Project Goal
+## Project Conclusion
 
 The goal of Secure Campus is to build a **lightweight security monitoring system for campus platforms** that can detect suspicious activities even after successful login, helping administrators identify potential insider threats and unauthorized access within campus systems.
