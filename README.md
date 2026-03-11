@@ -1,4 +1,4 @@
-# Secure Campus Backend
+# Secure Campus 
 
 Backend system for a **Secure Campus Security Monitoring System** built using **Spring Boot**.
 
