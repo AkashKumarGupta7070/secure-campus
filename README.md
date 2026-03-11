@@ -90,10 +90,10 @@ Typical workflow:
 
 ## Team
 
-- **Akash Kumar Gupta** — Backend Developer (Authentication, Security, Intrusion Detection)
-- **Frontend Developer** — User Interface & Dashboard
-- **Documentation Lead** — Research Paper & Project Report
-- **System Design Support** — Architecture & Testing
+- **Akash Kumar Gupta** — Backend Developer & Security Integration Lead
+- **Bittu Kumar** — Security Analyst & Threat Modelling Lead
+- **Priyanshu Sharma** — Documentation & Research Coordinator
+- **Yash Kumar** — Frontend Developer & Dashboard Designer
 
 ## Project Goal
 
