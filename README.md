@@ -50,7 +50,7 @@ Backend system for a **Secure Campus Security Monitoring System** built using **
 Clone the repository:
 
 ```bash
-git clone https://github.com/Raidium7070/secure-campus.git
+git clone https://github.com/AkashKumarGupta7070/secure-campus.git
 ```
 
 Navigate into the project folder:
