@@ -9,5 +9,4 @@ public class SecureCampusIdsApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SecureCampusIdsApplication.class, args);
 	}
-
 }
