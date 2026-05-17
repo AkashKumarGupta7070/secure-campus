@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SecureCampus SOC Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #020617;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ── TOP NAV ── */
+        .topbar {
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            padding: 0 28px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-logo {
+            width: 34px;
+            height: 34px;
+            background: #185FA5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topbar-logo i {
+            font-size: 18px;
+            color: #E6F1FB;
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #f1f5f9;
+        }
+
+        .topbar-badge {
+            font-size: 11px;
+            background: #1e3a5f;
+            color: #60a5fa;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid #1e4d8c;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #4ade80;
+            margin-right: 8px;
+        }
+
+        .live-dot span {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.18s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn i {
+            font-size: 14px;
+        }
+
+        .btn-blue {
+            background: #185FA5;
+            color: #E6F1FB;
+        }
+
+        .btn-blue:hover {
+            background: #0C447C;
+        }
+
+        .btn-red {
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }
+
+        .btn-red:hover {
+            background: #991b1b;
+        }
+
+        .btn-green {
+            background: #14532d;
+            color: #86efac;
+            border: 1px solid #166534;
+        }
+
+        .btn-green:hover {
+            background: #166534;
+        }
+
+        .btn-slate {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+
+        .btn-slate:hover {
+            background: #334155;
+        }
+
+        /* ── LAYOUT ── */
+        .main {
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ── SECTION HEADER ── */
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .section-title i {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #334155;
+        }
+
+        .stat-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i {
+            font-size: 15px;
+        }
+
+        .stat-icon.sql {
+            background: #3b1515;
+        }
+
+        .stat-icon.sql i {
+            color: #f87171;
+        }
+
+        .stat-icon.brute {
+            background: #3b2a10;
+        }
+
+        .stat-icon.brute i {
+            color: #fb923c;
+        }
+
+        .stat-icon.flood {
+            background: #1e3a5f;
+        }
+
+        .stat-icon.flood i {
+            color: #60a5fa;
+        }
+
+        .stat-icon.unauth {
+            background: #2d1b69;
+        }
+
+        .stat-icon.unauth i {
+            color: #a78bfa;
+        }
+
+        .stat-icon.link {
+            background: #163832;
+        }
+
+        .stat-icon.link i {
+            color: #34d399;
+        }
+
+        .stat-icon.total {
+            background: #1e293b;
+        }
+
+        .stat-icon.total i {
+            color: #94a3b8;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        /* ── PANEL ── */
+        .panel {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 20px 22px;
+        }
+
+        /* ── BLOCKED IPs ── */
+        .ip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ip-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .ip-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ip-left i {
+            font-size: 15px;
+            color: #f87171;
+        }
+
+        .ip-addr {
+            font-size: 13px;
+            font-family: monospace;
+            color: #e2e8f0;
+        }
+
+        .ip-tag {
+            font-size: 11px;
+            background: #3b1515;
+            color: #f87171;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid #7f1d1d;
+        }
+
+        .ip-empty {
+            font-size: 13px;
+            color: #475569;
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        /* ── TABLE ── */
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead tr {
+            border-bottom: 1px solid #1e293b;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #0f172a;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #1e293b;
+        }
+
+        td {
+            padding: 10px 12px;
+            color: #cbd5e1;
+        }
+
+        td.mono {
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        /* Severity & threat badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge.high {
+            background: #3b1515;
+            color: #f87171;
+            border: 1px solid #7f1d1d;
+        }
+
+        .badge.medium {
+            background: #3b2a10;
+            color: #fb923c;
+            border: 1px solid #92400e;
+        }
+
+        .badge.low {
+            background: #163832;
+            color: #34d399;
+            border: 1px solid #065f46;
+        }
+
+        .badge.none {
+            background: #1e293b;
+            color: #64748b;
+            border: 1px solid #334155;
+        }
+
+        .threat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #2d1b69;
+            color: #a78bfa;
+            border: 1px solid #4c1d95;
+        }
+
+        .threat-badge.none {
+            background: #1e293b;
+            color: #64748b;
+            border: 1px solid #334155;
+        }
+
+        /* Empty state */
+        .empty-row td {
+            text-align: center;
+            color: #475569;
+            padding: 24px;
+        }
+
+        /* Controls row */
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .divider {
+            height: 1px;
+            background: #1e293b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP NAV -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="topbar-logo"><i class="ti ti-shield-lock"></i></div>
+            <div class="topbar-title">SECURECAMPUS</div>
+            <div class="topbar-badge">SOC Dashboard</div>
+        </div>
+        <div class="topbar-right">
+            <div class="live-dot"><span></span> Live</div>
+            <button class="btn btn-red" onclick="clearLogs()"><i class="ti ti-trash"></i> Clear Logs</button>
+            <button class="btn btn-red" onclick="resetSystem()"><i class="ti ti-refresh"></i> Reset</button>
+            <button class="btn btn-green" onclick="logout()"><i class="ti ti-logout"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="main">
+
+        <!-- ATTACK STATS -->
+        <div>
+            <div class="section-head">
+                <div class="section-title"><i class="ti ti-chart-bar"></i> Attack Statistics</div>
+
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <div class="stat-label">SQL Injection</div>
+                        <div class="stat-icon sql"><i class="ti ti-database-x"></i></div>
+                    </div>
+                    <div class="stat-value" id="sqlCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <div class="stat-label">Brute Force</div>
+                        <div class="stat-icon brute"><i class="ti ti-lock-open"></i></div>
+                    </div>
+                    <div class="stat-value" id="bruteCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <div class="stat-label">Request Flood</div>
+                        <div class="stat-icon flood"><i class="ti ti-wave-saw-tool"></i></div>
+                    </div>
+                    <div class="stat-value" id="floodCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <div class="stat-label">Unauthorized</div>
+                        <div class="stat-icon unauth"><i class="ti ti-user-x"></i></div>
+                    </div>
+                    <div class="stat-value" id="unauthCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <div class="stat-label">Susp. Links</div>
+                        <div class="stat-icon link"><i class="ti ti-link-off"></i></div>
+                    </div>
+                    <div class="stat-value" id="linkCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <div class="stat-label">Total Threats</div>
+                        <div class="stat-icon total"><i class="ti ti-alert-triangle"></i></div>
+                    </div>
+                    <div class="stat-value" id="totalThreats">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCKED IPs -->
+        <div class="panel">
+            <div class="section-head">
+                <div class="section-title"><i class="ti ti-ban"></i> Blocked IPs</div>
+                <span id="blockedCount" style="font-size:12px;color:#64748b;">0 blocked</span>
+            </div>
+            <div class="ip-list" id="blockedIps">
+                <div class="ip-empty">No IPs currently blocked</div>
+            </div>
+        </div>
+
+        <!-- LIVE LOGS -->
+        <div class="panel">
+            <div class="section-head">
+                <div class="section-title"><i class="ti ti-terminal-2"></i> Live Logs</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="logCount" style="font-size:12px;color:#64748b;">0 entries</span>
+
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><i class="ti ti-clock" style="font-size:12px;vertical-align:-1px"></i> Time</th>
+                            <th><i class="ti ti-user" style="font-size:12px;vertical-align:-1px"></i> User</th>
+                            <th><i class="ti ti-network" style="font-size:12px;vertical-align:-1px"></i> IP Address</th>
+                            <th><i class="ti ti-alert-circle" style="font-size:12px;vertical-align:-1px"></i> Threat
+                            </th>
+                            <th><i class="ti ti-flame" style="font-size:12px;vertical-align:-1px"></i> Severity</th>
+                            <th><i class="ti ti-route" style="font-size:12px;vertical-align:-1px"></i> Endpoint</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logBody">
+                        <tr class="empty-row">
+                            <td colspan="6">Loading logs…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+
+
+        /* ── STATS ── */
+        async function loadStats() {
+            try {
+                const res = await fetch("/attack-stats", { credentials: "include" });
+                const data = await res.json();
+                const total =
+                    (data.SQL_INJECTION || 0) +
+                    (data.BRUTE_FORCE || 0) +
+                    (data.REQUEST_FLOOD || 0) +
+                    (data.UNAUTHORIZED_ACCESS || 0) +
+                    (data.SUSPICIOUS_LINK || 0);
+
+                document.getElementById("sqlCount").innerText = data.SQL_INJECTION || 0;
+                document.getElementById("bruteCount").innerText = data.BRUTE_FORCE || 0;
+                document.getElementById("floodCount").innerText = data.REQUEST_FLOOD || 0;
+                document.getElementById("unauthCount").innerText = data.UNAUTHORIZED_ACCESS || 0;
+                document.getElementById("linkCount").innerText = data.SUSPICIOUS_LINK || 0;
+                document.getElementById("totalThreats").innerText = total;
+            } catch (e) { }
+        }
+
+        /* ── LOGS ── */
+        function severityBadge(s) {
+            if (!s) return `<span class="badge none">—</span>`;
+            const level = s.toUpperCase();
+            if (level === 'HIGH') return `<span class="badge high"><i class="ti ti-flame" style="font-size:11px"></i>${s}</span>`;
+            if (level === 'MEDIUM') return `<span class="badge medium"><i class="ti ti-alert-triangle" style="font-size:11px"></i>${s}</span>`;
+            return `<span class="badge low"><i class="ti ti-check" style="font-size:11px"></i>${s}</span>`;
+        }
+
+        function threatBadge(t) {
+            if (!t || t === 'NONE') return `<span class="threat-badge none">NONE</span>`;
+            return `<span class="threat-badge"><i class="ti ti-bug" style="font-size:11px"></i>${t}</span>`;
+        }
+
+        async function loadLogs() {
+            try {
+                const res = await fetch("/api/logs", { credentials: "include" });
+                const data = await res.json();
+                const body = document.getElementById("logBody");
+                document.getElementById("logCount").innerText = data.length + " entries";
+
+                if (!data.length) {
+                    body.innerHTML = `<tr class="empty-row"><td colspan="6">No log entries yet</td></tr>`;
+                    return;
+                }
+
+                body.innerHTML = data.slice().reverse().map(l => `
+                <tr>
+                    <td class="mono">${l.time || '—'}</td>
+                    <td>${l.user || '—'}</td>
+                    <td class="mono">${l.ip || '—'}</td>
+                    <td>${threatBadge(l.threat)}</td>
+                    <td>${severityBadge(l.severity)}</td>
+                    <td class="mono">${l.endpoint || '—'}</td>
+                </tr>`).join('');
+            } catch (e) { }
+        }
+
+        /* ── BLOCKED IPs ── */
+        async function loadBlockedIPs() {
+            try {
+                const res = await fetch("/api/blocked-ips", { credentials: "include" });
+                const data = await res.json();
+                const list = document.getElementById("blockedIps");
+                document.getElementById("blockedCount").innerText = data.length + " blocked";
+
+                if (!data.length) {
+                    list.innerHTML = `<div class="ip-empty"><i class="ti ti-circle-check" style="font-size:16px;color:#34d399;vertical-align:-3px;margin-right:6px"></i>No IPs currently blocked</div>`;
+                    return;
+                }
+
+                list.innerHTML = data.map(ip => `
+                <div class="ip-item">
+                    <div class="ip-left">
+                        <i class="ti ti-ban"></i>
+                        <span class="ip-addr">${ip}</span>
+                        <span class="ip-tag">Blocked</span>
+                    </div>
+                    <button class="btn btn-green" onclick="unblockIP('${ip}')">
+                        <i class="ti ti-lock-open"></i> Unblock
+                    </button>
+                </div>`).join('');
+            } catch (e) { }
+        }
+
+        async function unblockIP(ip) {
+            await fetch("/unblock-ip", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `ip=${ip}`,
+                credentials: "include"
+            });
+            loadBlockedIPs();
+        }
+
+        /* ── SYSTEM ACTIONS ── */
+        async function clearLogs() {
+            if (!confirm("Clear all logs?")) return;
+            await fetch("/clear-logs", { method: "POST", credentials: "include" });
+            loadLogs();
+        }
+
+        async function resetSystem() {
+            if (!confirm("Reset the system? This will clear all stats and logs.")) return;
+            await fetch("/reset-system", { method: "POST", credentials: "include" });
+            loadLogs();
+            loadStats();
+        }
+
+        async function logout() {
+            await fetch("/logout", { credentials: "include" });
+            window.location.href = "/";
+        }
+
+        /* ── AUTO REFRESH ── */
+        setInterval(loadStats, 2000);
+        setInterval(loadLogs, 2000);
+        setInterval(loadBlockedIPs, 2000);
+
+        loadStats();
+        loadLogs();
+        loadBlockedIPs();
+    </script>
+
+</body>
+
+</html>

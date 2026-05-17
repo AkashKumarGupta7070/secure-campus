@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SecureCampus</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .sc-wrap {
+            padding: 2.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Brand */
+        .sc-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sc-logo {
+            width: 52px;
+            height: 52px;
+            background: #185FA5;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sc-logo i {
+            font-size: 26px;
+            color: #E6F1FB;
+        }
+
+        .sc-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #f1f5f9;
+        }
+
+        .sc-sub {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        /* Grid */
+        .sc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            width: 100%;
+            max-width: 780px;
+        }
+
+        /* Card */
+        .sc-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 1.6rem;
+        }
+
+        /* Card header */
+        .sc-card-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.4rem;
+        }
+
+        .sc-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sc-icon.user {
+            background: #0c447c;
+        }
+
+        .sc-icon.user i {
+            color: #85b7eb;
+            font-size: 19px;
+        }
+
+        .sc-icon.admin {
+            background: #712b13;
+        }
+
+        .sc-icon.admin i {
+            color: #f0997b;
+            font-size: 19px;
+        }
+
+        .sc-icon.link {
+            background: #27500a;
+        }
+
+        .sc-icon.link i {
+            color: #97c459;
+            font-size: 19px;
+        }
+
+        .sc-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .sc-card-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Fields */
+        .sc-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .sc-label {
+            font-size: 12px;
+            color: #94a3b8;
+            padding-left: 2px;
+        }
+
+        .sc-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .sc-input-wrap .left-icon {
+            position: absolute;
+            left: 10px;
+            font-size: 15px;
+            color: #475569;
+            pointer-events: none;
+        }
+
+        .sc-input-wrap input {
+            width: 100%;
+            padding: 9px 36px 9px 34px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 7px;
+            color: #f1f5f9;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .sc-input-wrap input::placeholder {
+            color: #475569;
+        }
+
+        .sc-input-wrap input:focus {
+            border-color: #378add;
+        }
+
+        /* Show/hide password toggle */
+        .toggle-eye {
+            position: absolute;
+            right: 10px;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .toggle-eye:hover {
+            color: #94a3b8;
+        }
+
+        /* Buttons */
+        .sc-btn {
+            width: 100%;
+            margin-top: 6px;
+            padding: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.18s;
+        }
+
+        .sc-btn.user-btn {
+            background: #185FA5;
+            color: #E6F1FB;
+        }
+
+        .sc-btn.user-btn:hover {
+            background: #0C447C;
+        }
+
+        .sc-btn.admin-btn {
+            background: #993C1D;
+            color: #FAECE7;
+        }
+
+        .sc-btn.admin-btn:hover {
+            background: #712B13;
+        }
+
+        .sc-reg {
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .sc-reg a {
+            color: #378add;
+            text-decoration: none;
+        }
+
+        .sc-reg a:hover {
+            text-decoration: underline;
+        }
+
+        /* Divider */
+        .sc-divider {
+            height: 1px;
+            background: #334155;
+            margin: 1rem 0;
+        }
+
+        /* Analyzer */
+        .sc-analyzer {
+            width: 100%;
+            max-width: 780px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 1.6rem;
+        }
+
+        .sc-analyze-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .sc-analyze-row .sc-input-wrap {
+            flex: 1;
+        }
+
+        .sc-analyze-row .sc-input-wrap input {
+            padding: 9px 10px 9px 34px;
+        }
+
+        .sc-analyze-btn {
+            background: #3B6D11;
+            color: #EAF3DE;
+            border: none;
+            border-radius: 7px;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.18s;
+        }
+
+        .sc-analyze-btn:hover {
+            background: #27500A;
+        }
+
+        .sc-result {
+            margin-top: 12px;
+            font-size: 13px;
+            min-height: 24px;
+        }
+
+        .sc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .sc-badge.safe {
+            background: #1a3a08;
+            color: #97c459;
+        }
+
+        .sc-badge.threat {
+            background: #3b0f0f;
+            color: #f09595;
+        }
+
+        .sc-footer {
+            font-size: 11px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sc-wrap">
+
+        <!-- Brand -->
+        <div class="sc-brand">
+            <div class="sc-logo"><i class="ti ti-shield-lock"></i></div>
+            <div class="sc-title">SECURECAMPUS</div>
+            <div class="sc-sub">Campus Security &amp; Access Management System</div>
+        </div>
+
+        <!-- Login Cards -->
+        <div class="sc-grid">
+
+            <!-- User Login -->
+            <div class="sc-card">
+                <div class="sc-card-head">
+                    <div class="sc-icon user"><i class="ti ti-user"></i></div>
+                    <div>
+                        <div class="sc-card-title">User login</div>
+                        <div class="sc-card-desc">Students &amp; staff</div>
+                    </div>
+                </div>
+
+                <div class="sc-field">
+                    <div class="sc-label">User ID</div>
+                    <div class="sc-input-wrap">
+                        <i class="ti ti-id-badge left-icon"></i>
+                        <input type="text" id="studentId" placeholder="Enter your user ID">
+                    </div>
+                </div>
+
+                <div class="sc-field">
+                    <div class="sc-label">Password</div>
+                    <div class="sc-input-wrap">
+                        <i class="ti ti-lock left-icon"></i>
+                        <input type="password" id="studentPass" placeholder="••••••••">
+                        <button class="toggle-eye" type="button" onclick="togglePassword('studentPass', this)"
+                            aria-label="Show password">
+                            <i class="ti ti-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="sc-btn user-btn" onclick="studentLogin()">
+                    <i class="ti ti-login" style="font-size:15px"></i> Sign in
+                </button>
+
+                <div class="sc-reg">New user? <a href="#" onclick="showRegister()">Register here</a></div>
+            </div>
+
+            <!-- Admin Login -->
+            <div class="sc-card">
+                <div class="sc-card-head">
+                    <div class="sc-icon admin"><i class="ti ti-shield-check"></i></div>
+                    <div>
+                        <div class="sc-card-title">Administrator login</div>
+                        <div class="sc-card-desc">Authorized personnel only</div>
+                    </div>
+                </div>
+
+                <div class="sc-field">
+                    <div class="sc-label">Admin username</div>
+                    <div class="sc-input-wrap">
+                        <i class="ti ti-user-shield left-icon"></i>
+                        <input type="text" id="adminId" placeholder="Enter admin username">
+                    </div>
+                </div>
+
+                <div class="sc-field">
+                    <div class="sc-label">Password</div>
+                    <div class="sc-input-wrap">
+                        <i class="ti ti-lock left-icon"></i>
+                        <input type="password" id="adminPass" placeholder="••••••••">
+                        <button class="toggle-eye" type="button" onclick="togglePassword('adminPass', this)"
+                            aria-label="Show password">
+                            <i class="ti ti-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="sc-btn admin-btn" onclick="adminLogin()">
+                    <i class="ti ti-lock-access" style="font-size:15px"></i> Secure sign in
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Link Analyzer -->
+        <div class="sc-analyzer">
+            <div class="sc-card-head">
+                <div class="sc-icon link"><i class="ti ti-link"></i></div>
+                <div>
+                    <div class="sc-card-title">Link analyzer</div>
+                    <div class="sc-card-desc">Scan URLs for threats before visiting</div>
+                </div>
+            </div>
+
+            <div class="sc-analyze-row">
+                <div class="sc-input-wrap">
+                    <i class="ti ti-world left-icon"></i>
+                    <input type="text" id="linkInput" placeholder="Paste a URL to analyze…">
+                </div>
+                <button class="sc-analyze-btn" onclick="checkLink()">
+                    <i class="ti ti-scan" style="font-size:14px"></i> Analyze
+                </button>
+            </div>
+
+            <div class="sc-result" id="result"></div>
+
+            <div class="sc-divider"></div>
+            <div class="sc-footer">
+                <i class="ti ti-shield" style="font-size:13px"></i>
+                All traffic is monitored and logged for security purposes
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+
+
+        // Toggle show/hide password
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'ti ti-eye-off';
+                btn.setAttribute('aria-label', 'Hide password');
+            } else {
+                input.type = 'password';
+                icon.className = 'ti ti-eye';
+                btn.setAttribute('aria-label', 'Show password');
+            }
+        }
+
+
+        async function studentLogin() {
+
+            const username = document.getElementById("studentId").value.trim();
+            const password = document.getElementById("studentPass").value.trim();
+
+            if (!username || !password) {
+                alert("Enter username and password");
+                return;
+            }
+
+            try {
+
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        role: "STUDENT"
+                    })
+                });
+
+                const data = await res.json();
+
+                // SUCCESS
+                if (res.ok && data.redirect) {
+
+                    window.location.href = data.redirect;
+                    return;
+                }
+
+                // BLOCKED
+                if (res.status === 403) {
+
+                    alert("Blocked by IDS");
+                    return;
+                }
+
+                // FAILED LOGIN
+                alert(data.error || "Login failed");
+
+            } catch (err) {
+
+                console.log(err);
+
+                alert("Cannot connect to IDS server");
+            }
+        }
+
+
+
+        async function adminLogin() {
+
+            const username = document.getElementById("adminId").value.trim();
+            const password = document.getElementById("adminPass").value.trim();
+
+            if (!username || !password) {
+                alert("Enter admin username and password");
+                return;
+            }
+
+            try {
+
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        role: "ADMIN"
+                    })
+                });
+
+                const data = await res.json();
+
+                // SUCCESS
+                if (res.ok && data.redirect) {
+
+                    window.location.href = data.redirect;
+                    return;
+                }
+
+                // BLOCKED
+                if (res.status === 403) {
+
+                    alert("Blocked by IDS");
+                    return;
+                }
+
+                // INVALID LOGIN
+                alert(data.error || "Invalid admin credentials");
+
+            } catch (err) {
+
+                console.log(err);
+
+                alert("Cannot connect to IDS server");
+            }
+        }
+
+
+
+        // Link Analyzer
+        async function checkLink() {
+            const link = document.getElementById("linkInput").value;
+            const result = document.getElementById("result");
+            result.innerHTML = '<span style="color:#64748b;font-size:12px">Analyzing…</span>';
+            try {
+                const res = await fetch("/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user: "frontend", role: "STUDENT", endpoint: "/link", status: 200, url: link })
+                });
+                const data = await res.json();
+                if (data.threat && data.threat !== "NONE") {
+                    result.innerHTML = `<span class="sc-badge threat"><i class="ti ti-alert-triangle" style="font-size:13px"></i> Threat detected: ${data.threat}</span>`;
+                } else {
+                    result.innerHTML = `<span class="sc-badge safe"><i class="ti ti-circle-check" style="font-size:13px"></i> Link appears safe</span>`;
+                }
+            } catch {
+                result.innerHTML = `<span class="sc-badge threat"><i class="ti ti-alert-circle" style="font-size:13px"></i> Analysis failed — check connection</span>`;
+            }
+        }
+
+        function showRegister() {
+            alert("Register feature not implemented yet.");
+        }
+    </script>
+
+</body>
+
+</html>
