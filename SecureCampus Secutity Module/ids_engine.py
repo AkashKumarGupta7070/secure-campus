@@ -1,262 +1,239 @@
-from flask import Flask, request, jsonify, session, redirect, render_template
-import os
+# ids_engine.py
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from datetime import datetime
 
 from rule_engine import analyze_request
-from ip_blocker import (
-    is_blocked,
-    unblock_ip,
-    get_blocked_ips,
-    block_ip
-)
-
-from detectors.brute_force import (
-    detect_bruteforce,
-    reset_attempts,
-    attempts
-)
 
 from attack_counter import (
-    get_attack_stats,
     increment_attack,
+    get_attack_stats,
     reset_attack_stats
 )
 
-from user_blocker import is_user_blocked
-from database import init_db, log_attack, get_logs, clear_logs
+from ip_blocker import (
+    block_ip,
+    is_blocked,
+    get_blocked_ips,
+    unblock_ip,
+    reset_blocked_ips
+)
+
+from database import (
+    init_db,
+    log_attack,
+    get_logs,
+    clear_logs
+)
+
+from detectors.brute_force import attempts
+
+
+# =========================================================
+# FLASK APP
+# =========================================================
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
 
-# ================= CONFIG =================
+# Request size limit (1 MB)
+app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin"
+# Disable pretty JSON formatting
+app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
 
-STUDENT_USERNAME = "student"
-STUDENT_PASSWORD = "1234"
+
+# =========================================================
+# ENABLE CORS
+# =========================================================
+
+CORS(
+    app,
+    origins=[
+        "http://localhost:8080",
+        "http://127.0.0.1:8080"
+    ]
+)
+
+
+# =========================================================
+# INITIALIZE DATABASE
+# =========================================================
 
 init_db()
 
-# ================= HOME =================
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+# =========================================================
+# HEALTH CHECK
+# =========================================================
 
-# ================= DASHBOARD =================
-
-@app.route("/dashboard")
-def dashboard():
-
-    if not session.get("admin"):
-        return redirect("/")
-
-    return render_template("dashboard.html")
-
-
-# ---------------- LOGIN API ----------------
-@app.route("/login", methods=["POST"])
-def login():
-
-    data = request.get_json(silent=True) or {}
-
-    username = data.get("username", "").strip()
-    password = data.get("password", "").strip()
-    role = data.get("role", "").upper()
-
-    ip = request.remote_addr
-
-    # ================= BLOCKED IP =================
-
-    if is_blocked(ip):
-
-        log_attack(
-            user=username,
-            ip=ip,
-            threat="BLOCKED_IP",
-            severity="CRITICAL",
-            endpoint="/login"
-        )
-
-        increment_attack("BLOCKED_IP")
-
-        return jsonify({
-            "success": False,
-            "error": "IP blocked by IDS"
-        }), 403
-
-    # ================= LOGIN VALIDATION =================
-
-    success = False
-
-    # ADMIN LOGIN
-    if role == "ADMIN":
-
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            success = True
-            session.clear()
-            session["admin"] = True
-            session["user"] = username
-
-    # STUDENT LOGIN
-    elif role == "STUDENT":
-
-        if username == STUDENT_USERNAME and password == STUDENT_PASSWORD:
-            success = True
-            session.clear()
-            session["student"] = True
-            session["user"] = username
-
-    # ================= IDS ANALYSIS =================
-
-    status = 200 if success else 401
-
-    # VERY IMPORTANT:
-    # pass username as payload
-    # so SQL injection can detect it
-    result = analyze_request(
-        username,
-        role,
-        ip,
-        "/login",
-        status,
-        username
-    )
-
-    # ================= ATTACK DETECTED =================
-
-    if result and result["threat"] != "NONE":
-
-        log_attack(
-            user=username,
-            ip=ip,
-            threat=result["threat"],
-            severity=result["severity"],
-            endpoint="/login"
-        )
-
-        increment_attack(result["threat"])
-
-        # block dangerous attackers
-        if result["severity"] in ["HIGH", "CRITICAL"]:
-            block_ip(ip)
-
-        # login failed
-        if not success:
-
-            return jsonify({
-                "success": False,
-                "error": result["description"],
-                "threat": result["threat"]
-            }), 403
-
-    # ================= LOGIN SUCCESS =================
-
-    if success:
-
-        if role == "ADMIN":
-
-            return jsonify({
-                "success": True,
-                "redirect": "/dashboard"
-            })
-
-        return jsonify({
-            "success": True,
-            "redirect": "/"
-        })
-
-    # ================= INVALID LOGIN =================
+@app.route("/health", methods=["GET"])
+def health():
 
     return jsonify({
-        "success": False,
-        "error": "Invalid credentials"
-    }), 401
-
-
-# ================= LOGOUT =================
-
-@app.route("/logout")
-def logout():
-
-    session.clear()
-
-    return jsonify({
-        "success": True
+        "status": "IDS ONLINE",
+        "service": "SecureCampus IDS",
+        "time": datetime.utcnow().isoformat() + "Z"
     })
 
-# ================= ANALYZE =================
+
+# =========================================================
+# MAIN IDS ANALYSIS
+# =========================================================
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
 
-    data = request.get_json()
+    # =====================================================
+    # SAFE JSON PARSING
+    # =====================================================
+
+    data = request.get_json(silent=True) or {}
 
     if not data:
+
         return jsonify({
             "threat": "ERROR",
             "severity": "LOW",
-            "description": "Invalid request"
-        })
+            "description": "Invalid JSON request"
+        }), 400
 
-    user = data.get("user")
-    role = data.get("role")
-    endpoint = data.get("endpoint")
-    status = data.get("status")
-    url = data.get("url")
+    # =====================================================
+    # REQUEST DATA
+    # =====================================================
 
-    ip = request.remote_addr
+    user = str(data.get("user", "unknown"))
+    role = str(data.get("role", "UNKNOWN"))
+    endpoint = str(data.get("endpoint", "/"))
+    url = str(data.get("url", ""))
+
+    # Safe status conversion
+    try:
+        status = int(data.get("status", 200))
+    except:
+        status = 200
+
+    # =====================================================
+    # CLIENT IP
+    # =====================================================
+
+    ip = request.headers.get(
+        "X-Forwarded-For",
+        request.remote_addr
+    )
+
+    # Handle proxy chain
+    if ip and "," in ip:
+        ip = ip.split(",")[0].strip()
+
+    if not ip:
+
+        return jsonify({
+            "threat": "ERROR",
+            "severity": "LOW",
+            "description": "Unable to determine IP"
+        }), 400
+
+    # =====================================================
+    # BLOCKED IP CHECK
+    # =====================================================
 
     if is_blocked(ip):
+
         return jsonify({
             "threat": "BLOCKED",
             "severity": "CRITICAL",
-            "description": "Your IP is blocked"
-        })
+            "description": "Access denied"
+        }), 403
 
-    result = analyze_request(
-        user,
-        role,
-        ip,
-        endpoint,
-        status,
-        url
-    )
+    # =====================================================
+    # IDS ANALYSIS
+    # =====================================================
+
+    try:
+
+        result = analyze_request(
+            user=user,
+            role=role,
+            ip=ip,
+            endpoint=endpoint,
+            status=status,
+            url=url
+        )
+
+    except Exception as e:
+
+        print("IDS ERROR:", e)
+
+        return jsonify({
+            "threat": "ERROR",
+            "severity": "LOW",
+            "description": "IDS processing failed"
+        }), 500
+
+    # =====================================================
+    # SAFETY FALLBACK
+    # =====================================================
 
     if not result:
+
         return jsonify({
-            "threat": "NONE"
+            "threat": "NONE",
+            "severity": "INFO",
+            "description": "No threat detected"
         })
 
-    # ATTACK
-    if result["threat"] != "NONE":
+    # =====================================================
+    # ATTACK DETECTED
+    # =====================================================
 
+    if result.get("threat") != "NONE":
+
+        # Update statistics
+        increment_attack(
+            result.get("threat")
+        )
+
+        # Save attack log
         log_attack(
             user=user,
             ip=ip,
-            threat=result["threat"],
-            severity=result["severity"],
+            threat=result.get("threat"),
+            severity=result.get("severity"),
             endpoint=endpoint
         )
 
-        increment_attack(result["threat"])
+        # Auto-block dangerous attackers
+        if result.get("severity") in ["HIGH", "CRITICAL"]:
 
-        if result["severity"] in ["HIGH", "CRITICAL"]:
             block_ip(ip)
 
     return jsonify(result)
 
-# ================= LOGS =================
 
-@app.route("/api/logs")
-def api_logs():
+# =========================================================
+# GET ATTACK STATISTICS
+# =========================================================
 
-    if not session.get("admin"):
-        return jsonify([])
+@app.route("/attack-stats", methods=["GET"])
+def attack_stats():
+
+    return jsonify(
+        get_attack_stats()
+    )
+
+
+# =========================================================
+# GET IDS LOGS
+# =========================================================
+
+@app.route("/api/logs", methods=["GET"])
+def logs():
 
     logs = get_logs()
 
     return jsonify([
+
         {
             "time": l[0],
             "user": l[1],
@@ -265,153 +242,138 @@ def api_logs():
             "severity": l[4],
             "endpoint": l[5]
         }
+
         for l in logs
     ])
 
-# ================= STATS =================
 
-@app.route("/attack-stats")
-def attack_stats():
+# =========================================================
+# GET BLOCKED IPS
+# =========================================================
 
-    if not session.get("admin"):
-        return jsonify({})
-
-    return jsonify(get_attack_stats())
-
-# ================= BLOCKED IPS =================
-
-@app.route("/api/blocked-ips")
+@app.route("/api/blocked-ips", methods=["GET"])
 def blocked_ips():
 
-    if not session.get("admin"):
-        return jsonify([])
+    return jsonify(
+        list(get_blocked_ips())
+    )
 
-    return jsonify(list(get_blocked_ips()))
 
-# ================= UNBLOCK =================
+# =========================================================
+# UNBLOCK IP
+# =========================================================
 
 @app.route("/unblock-ip", methods=["POST"])
 def unblock():
 
-    if not session.get("admin"):
-        return jsonify({"success": False})
+    data = request.get_json(silent=True) or {}
 
-    ip = request.form.get("ip")
+    ip = data.get("ip")
 
+    if not ip:
+
+        return jsonify({
+            "success": False,
+            "message": "IP address missing"
+        }), 400
+
+    # Remove blocked IP
     unblock_ip(ip)
-    reset_attempts(ip)
+
+    # Remove brute-force tracking
+    if ip in attempts:
+        del attempts[ip]
 
     return jsonify({
-        "success": True
+        "success": True,
+        "message": f"{ip} unblocked successfully"
     })
 
-# ================= CLEAR LOGS =================
+
+# =========================================================
+# CLEAR LOGS
+# =========================================================
 
 @app.route("/clear-logs", methods=["POST"])
 def clear_logs_route():
 
-    if not session.get("admin"):
-        return jsonify({"success": False})
-
     clear_logs()
 
     return jsonify({
-        "success": True
+        "success": True,
+        "message": "Logs cleared successfully"
     })
 
-# ================= RESET =================
+
+# =========================================================
+# RESET IDS SYSTEM
+# =========================================================
 
 @app.route("/reset-system", methods=["POST"])
 def reset_system():
 
-    if not session.get("admin"):
-        return jsonify({"success": False})
+    # Clear blocked IPs
+    reset_blocked_ips()
 
-    clear_logs()
+    # Clear brute-force attempts
     attempts.clear()
+
+    # Clear database logs
+    clear_logs()
+
+    # Reset attack counters
     reset_attack_stats()
 
     return jsonify({
-        "success": True
+        "success": True,
+        "message": "IDS reset complete"
     })
 
-@app.before_request
-def global_ids_monitor():
 
-    endpoint = request.path
+# =========================================================
+# 404 ERROR HANDLER
+# =========================================================
 
-    # ✅ Ignore safe routes
-    ignored_routes = [
-    "/login",
-    "/logout",
-    "/attack-stats",
-    "/api/logs",
-    "/api/blocked-ips",
-    "/unblock-ip",
-    "/clear-logs",
-    "/reset-system",
-    "/favicon.ico"
-]
+@app.errorhandler(404)
+def not_found(e):
 
-    # ✅ Ignore static/templates files
-    if endpoint.startswith("/static"):
-        return
+    return jsonify({
+        "error": "Endpoint not found"
+    }), 404
 
-    # ✅ Skip ignored routes
-    if endpoint in ignored_routes:
-        return
 
-    ip = request.remote_addr
+# =========================================================
+# 413 ERROR HANDLER
+# =========================================================
 
-    if session.get("admin"):
-     role = "ADMIN"
+@app.errorhandler(413)
+def payload_too_large(e):
 
-    elif session.get("student"):
-     role = "STUDENT"
+    return jsonify({
+        "error": "Payload too large"
+    }), 413
 
-    else:
-     role = "UNKNOWN"
 
-    user = session.get("user", "guest")
+# =========================================================
+# 500 ERROR HANDLER
+# =========================================================
 
-    result = analyze_request(
-        user=user,
-        role=role,
-        ip=ip,
-        endpoint=endpoint,
-        status=200,
-        url=endpoint
-    )
+@app.errorhandler(500)
+def server_error(e):
 
-    # ✅ Only block REAL dangerous attacks
-    if result and result.get("severity") in ["HIGH", "CRITICAL"]:
+    return jsonify({
+        "error": "Internal server error"
+    }), 500
 
-     if endpoint != "/":
 
-        # LOG ATTACK
-        log_attack(
-            user=user,
-            ip=ip,
-            threat=result["threat"],
-            severity=result["severity"],
-            endpoint=endpoint
-        )
-
-        # UPDATE STATS
-        increment_attack(result["threat"])
-
-        # BLOCK IP
-        block_ip(ip)
-
-        return jsonify({
-            "blocked": True,
-            "reason": result
-        }), 403
-# ================= RUN =================
+# =========================================================
+# RUN SERVER
+# =========================================================
 
 if __name__ == "__main__":
+
     app.run(
         host="0.0.0.0",
         port=5000,
-        debug=True
+        debug=False
     )
